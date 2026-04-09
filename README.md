@@ -11,5 +11,5 @@ bash k8s/start.sh
 2. Abrir la aplicación en:
 
 ```bash
-http://localhost:30080
+http://localhost:8081
 ```
