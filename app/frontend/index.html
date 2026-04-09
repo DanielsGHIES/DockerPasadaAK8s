@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskApp</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">TaskApp Planner</p>
+          <h1>Gestiona tareas como tarjetas con detalle completo</h1>
+          <p class="hero-copy">
+            Crea, consulta, edita y elimina tareas con descripcion, prioridad, responsable y tiempo estimado.
+          </p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span id="task-count">0</span>
+            <p>Tareas totales</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Formulario</h2>
+            <button id="reset-form" class="ghost-button" type="button">Nueva</button>
+          </div>
+
+          <form id="task-form" class="task-form">
+            <label>
+              Titulo
+              <input id="task-title" type="text" placeholder="Ej. Desplegar frontend" required />
+            </label>
+
+            <label>
+              Descripcion
+              <textarea id="task-description" rows="4" placeholder="Describe el trabajo a realizar"></textarea>
+            </label>
+
+            <div class="form-grid">
+              <label>
+                Estado
+                <select id="task-status">
+                  <option>Pendiente</option>
+                  <option>En progreso</option>
+                  <option>Bloqueada</option>
+                  <option>Completada</option>
+                </select>
+              </label>
+
+              <label>
+                Prioridad
+                <select id="task-priority">
+                  <option>Alta</option>
+                  <option>Media</option>
+                  <option>Baja</option>
+                </select>
+              </label>
+
+              <label>
+                Horas estimadas
+                <input id="task-hours" type="number" min="1" value="1" required />
+              </label>
+
+              <label>
+                Fecha limite
+                <input id="task-due-date" type="date" />
+              </label>
+            </div>
+
+            <label>
+              Responsable
+              <input id="task-owner" type="text" placeholder="Ej. Daniel" />
+            </label>
+
+            <button id="task-submit" type="submit">Guardar tarea</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Tablero de tareas</h2>
+            <p id="selection-hint">Selecciona una tarjeta para ver su detalle.</p>
+          </div>
+          <div id="task-list" class="task-grid"></div>
+        </section>
+      </section>
+
+      <section class="panel detail-panel">
+        <div class="panel-heading">
+          <h2>Detalle de tarea</h2>
+          <span id="detail-badge" class="detail-badge">Sin seleccionar</span>
+        </div>
+        <div id="task-detail" class="task-detail empty-state">
+          Elige una tarea del grid para ver todos sus datos y editarla.
+        </div>
+      </section>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
