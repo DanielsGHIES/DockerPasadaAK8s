@@ -47,11 +47,26 @@ deploy_app() {
   kubectl rollout status deployment/taskapp-frontend --timeout=180s
 }
 
+start_codespaces_port_forward() {
+  if [[ -z "${CODESPACES:-}" ]]; then
+    return
+  fi
+
+  pkill -f "kubectl port-forward service/taskapp-frontend 8081:80" >/dev/null 2>&1 || true
+  nohup kubectl port-forward service/taskapp-frontend 8081:80 >/tmp/taskapp-port-forward.log 2>&1 &
+}
+
 install_kind
 ensure_cluster
 build_images
 deploy_app
+start_codespaces_port_forward
 
 kubectl get pods
 kubectl get services
-echo "Aplicacion disponible en http://localhost:30080"
+
+if [[ -n "${CODESPACES:-}" ]]; then
+  echo "Aplicacion disponible en el puerto reenviado 8081 de Codespaces"
+else
+  echo "Aplicacion disponible en http://localhost:30080"
+fi
