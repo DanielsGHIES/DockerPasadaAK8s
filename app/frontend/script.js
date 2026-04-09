@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:33/tasks";
+const apiUrl = "/api/tasks";
 const taskList = document.getElementById("task-list");
 const taskForm = document.getElementById("task-form");
 const taskTitle = document.getElementById("task-title");
