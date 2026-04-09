@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskapp-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskapp-frontend
+  template:
+    metadata:
+      labels:
+        app: taskapp-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: app-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
