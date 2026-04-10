@@ -8,5 +8,6 @@ spec:
     app: taskapp-frontend
   ports:
     - port: 80
+      # Cambio introducido para redirigir al nuevo puerto interno del frontend no root.
       targetPort: 8080
       nodePort: 30080

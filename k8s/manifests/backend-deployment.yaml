@@ -17,6 +17,7 @@ spec:
           image: app-backend:latest
           imagePullPolicy: Never
           securityContext:
+            # Vulnerabilidad existente: KICS detectaba allowPrivilegeEscalation habilitado por omision.
             allowPrivilegeEscalation: false
           ports:
             - containerPort: 3001

@@ -17,6 +17,8 @@ spec:
           image: app-frontend:latest
           imagePullPolicy: Never
           securityContext:
+            # Vulnerabilidad existente: KICS detectaba allowPrivilegeEscalation habilitado por omision.
             allowPrivilegeEscalation: false
           ports:
+            # Cambio introducido para que el frontend siga funcionando sin privilegios.
             - containerPort: 8080
