@@ -7,6 +7,42 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CLUSTER_NAME="taskapp"
 CLUSTER_CONTEXT="kind-${CLUSTER_NAME}"
 
+find_kubectl() {
+  if command -v kubectl >/dev/null 2>&1; then
+    command -v kubectl
+    return
+  fi
+
+  if command -v kubectl.exe >/dev/null 2>&1; then
+    command -v kubectl.exe
+    return
+  fi
+
+  if [[ -x "/c/Program Files/Docker/Docker/resources/bin/kubectl.exe" ]]; then
+    printf '%s\n' "/c/Program Files/Docker/Docker/resources/bin/kubectl.exe"
+    return
+  fi
+
+  if [[ -x "/mnt/c/Program Files/Docker/Docker/resources/bin/kubectl.exe" ]]; then
+    printf '%s\n' "/mnt/c/Program Files/Docker/Docker/resources/bin/kubectl.exe"
+    return
+  fi
+
+  return 1
+}
+
+KUBECTL_BIN="$(find_kubectl || true)"
+
+kubectl_cmd() {
+  if [[ -z "${KUBECTL_BIN}" ]]; then
+    echo "kubectl no esta instalado o no es accesible desde bash." >&2
+    echo "Instalalo o abre una terminal donde kubectl/kubectl.exe este en PATH." >&2
+    exit 1
+  fi
+
+  "${KUBECTL_BIN}" "$@"
+}
+
 install_kind() {
   if command -v kind >/dev/null 2>&1; then
     return
@@ -19,12 +55,15 @@ install_kind() {
 
 ensure_cluster() {
   if kind get clusters 2>/dev/null | grep -qx "${CLUSTER_NAME}"; then
-    kubectl config use-context "${CLUSTER_CONTEXT}" >/dev/null
+    kind export kubeconfig --name "${CLUSTER_NAME}" >/dev/null 2>&1 || true
+    kubectl_cmd config use-context "${CLUSTER_CONTEXT}" >/dev/null
   else
     kind create cluster --name "${CLUSTER_NAME}"
+    kind export kubeconfig --name "${CLUSTER_NAME}" >/dev/null
+    kubectl_cmd config use-context "${CLUSTER_CONTEXT}" >/dev/null
   fi
 
-  kubectl wait --for=condition=Ready node --all --timeout=180s
+  kubectl_cmd wait --for=condition=Ready node --all --timeout=180s
 }
 
 build_images() {
@@ -35,38 +74,34 @@ build_images() {
 }
 
 deploy_app() {
-  kubectl apply -f "${REPO_ROOT}/k8s/manifests/postgres-deployment.yaml"
-  kubectl apply -f "${REPO_ROOT}/k8s/manifests/postgres-service.yaml"
-  kubectl apply -f "${REPO_ROOT}/k8s/manifests/backend-deployment.yaml"
-  kubectl apply -f "${REPO_ROOT}/k8s/manifests/backend-service.yaml"
-  kubectl apply -f "${REPO_ROOT}/k8s/manifests/frontend-deployment.yaml"
-  kubectl apply -f "${REPO_ROOT}/k8s/manifests/frontend-service.yaml"
+  kubectl_cmd apply -f "${REPO_ROOT}/k8s/manifests/postgres-deployment.yaml"
+  kubectl_cmd apply -f "${REPO_ROOT}/k8s/manifests/postgres-service.yaml"
+  kubectl_cmd apply -f "${REPO_ROOT}/k8s/manifests/backend-deployment.yaml"
+  kubectl_cmd apply -f "${REPO_ROOT}/k8s/manifests/backend-service.yaml"
+  kubectl_cmd apply -f "${REPO_ROOT}/k8s/manifests/frontend-deployment.yaml"
+  kubectl_cmd apply -f "${REPO_ROOT}/k8s/manifests/frontend-service.yaml"
 
-  kubectl rollout status deployment/taskapp-postgres --timeout=180s
-  kubectl rollout status deployment/taskapp-backend --timeout=180s
-  kubectl rollout status deployment/taskapp-frontend --timeout=180s
+  kubectl_cmd rollout status deployment/taskapp-postgres --timeout=180s
+  kubectl_cmd rollout status deployment/taskapp-backend --timeout=180s
+  kubectl_cmd rollout status deployment/taskapp-frontend --timeout=180s
 }
 
-start_codespaces_port_forward() {
-  if [[ -z "${CODESPACES:-}" ]]; then
-    return
-  fi
-
-  pkill -f "kubectl port-forward service/taskapp-frontend 8081:80" >/dev/null 2>&1 || true
-  nohup kubectl port-forward service/taskapp-frontend 8081:80 >/tmp/taskapp-port-forward.log 2>&1 &
+start_port_forward() {
+  pkill -f "kubectl(.exe)? port-forward service/taskapp-frontend 8081:80" >/dev/null 2>&1 || true
+  nohup "${KUBECTL_BIN}" port-forward service/taskapp-frontend 8081:80 >/tmp/taskapp-port-forward.log 2>&1 &
 }
 
 install_kind
 ensure_cluster
 build_images
 deploy_app
-start_codespaces_port_forward
+start_port_forward
 
-kubectl get pods
-kubectl get services
+kubectl_cmd get pods
+kubectl_cmd get services
 
 if [[ -n "${CODESPACES:-}" ]]; then
   echo "Aplicacion disponible en el puerto reenviado 8081 de Codespaces"
 else
-  echo "Aplicacion disponible en http://localhost:30080"
+  echo "Aplicacion disponible en http://localhost:8081"
 fi

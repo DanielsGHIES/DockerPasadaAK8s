@@ -16,6 +16,8 @@ spec:
         - name: backend
           image: app-backend:latest
           imagePullPolicy: Never
+          securityContext:
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: 3001
           env:
